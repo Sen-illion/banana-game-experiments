@@ -281,11 +281,13 @@ function renderStorySegments(segments) {
 
 function renderCandidates(currentCase) {
   els.candidateList.innerHTML = "";
+  const isTextMode = state.dataset.mode === "text";
   getAnonymousCandidates(currentCase).forEach((candidate) => {
     const fragment = els.candidateTemplate.content.cloneNode(true);
     const card = fragment.querySelector(".candidate-card");
     const label = fragment.querySelector(".candidate-label");
     const completion = fragment.querySelector(".candidate-completion");
+    const copy = fragment.querySelector(".candidate-copy");
     const strip = fragment.querySelector(".image-strip");
     const ratingList = fragment.querySelector(".rating-list");
     const note = fragment.querySelector("textarea");
@@ -296,7 +298,10 @@ function renderCandidates(currentCase) {
     label.textContent = `方案 ${candidate.label}`;
     completion.textContent = complete ? "已完成" : "待评分";
 
-    renderSegmentPairs(strip, currentCase.storySegments || [], candidate);
+    if (copy) {
+      copy.textContent = isTextMode ? "请仅基于该方案文本内容评分。" : "请仅基于该方案图片内容评分。";
+    }
+    renderSegmentPairs(strip, currentCase.storySegments || [], candidate, state.dataset.mode);
     renderRatings(ratingList, currentCase.id, candidate.label);
 
     note.value = getCandidateState(currentCase.id, candidate.label).note || "";
@@ -311,11 +316,16 @@ function renderCandidates(currentCase) {
   });
 }
 
-function renderSegmentPairs(container, sharedSegments, candidate) {
+function renderSegmentPairs(container, sharedSegments, candidate, mode) {
   container.innerHTML = "";
+  const isTextMode = mode === "text";
+  container.classList.toggle("text-mode", isTextMode);
+  container.classList.toggle("image-mode", !isTextMode);
   const candidateTexts = normalizeParagraphs(candidate.textSegments || []);
   const images = Array.isArray(candidate.images) ? candidate.images : [];
-  const segmentCount = Math.max(sharedSegments.length, candidateTexts.length, images.length);
+  const segmentCount = isTextMode
+    ? candidateTexts.length
+    : Math.max(sharedSegments.length, images.length);
 
   if (segmentCount === 0) {
     const empty = document.createElement("p");
@@ -334,29 +344,23 @@ function renderSegmentPairs(container, sharedSegments, candidate) {
     caption.textContent = `段落 ${i + 1}`;
     frame.appendChild(caption);
 
-    const baseText = sharedSegments[i];
-    if (baseText) {
-      const p = document.createElement("p");
-      p.className = "rich-copy";
-      p.textContent = baseText;
-      frame.appendChild(p);
-    }
-
-    const candidateText = candidateTexts[i];
-    if (candidateText) {
-      const p = document.createElement("p");
-      p.className = "rich-copy";
-      p.textContent = candidateText;
-      frame.appendChild(p);
-    }
-
-    const src = images[i];
-    if (src) {
-      const img = document.createElement("img");
-      img.src = src;
-      img.alt = `候选方案图像 ${i + 1}`;
-      img.loading = "lazy";
-      frame.appendChild(img);
+    if (isTextMode) {
+      const candidateText = candidateTexts[i];
+      if (candidateText) {
+        const p = document.createElement("p");
+        p.className = "rich-copy";
+        p.textContent = candidateText;
+        frame.appendChild(p);
+      }
+    } else {
+      const src = images[i];
+      if (src) {
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = `候选方案图像 ${i + 1}`;
+        img.loading = "lazy";
+        frame.appendChild(img);
+      }
     }
 
     container.appendChild(frame);
@@ -679,4 +683,3 @@ function escapeHtml(value) {
   span.textContent = value;
   return span.innerHTML;
 }
-

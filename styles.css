@@ -433,6 +433,22 @@ h3 {
   gap: 12px;
 }
 
+.image-strip.text-mode {
+  grid-template-columns: 1fr;
+}
+
+.image-strip.image-mode {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.image-strip.image-mode .image-frame {
+  min-width: 220px;
+  flex: 0 0 220px;
+}
+
 .image-frame {
   overflow: hidden;
   border: 1px solid var(--line);
