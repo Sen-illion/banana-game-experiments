@@ -291,11 +291,15 @@ function renderStorySegments(segments) {
 function renderCandidates(currentCase) {
   els.candidateList.innerHTML = "";
   const isTextMode = state.dataset.mode === "text";
+  const isImageMode = state.dataset.mode === "image";
   els.candidateList.classList.toggle("text-mode", isTextMode);
   const anonymousCandidates = getAnonymousCandidates(currentCase);
 
   if (isTextMode) {
     renderTextComparisonBoard(els.candidateList, anonymousCandidates);
+  }
+  if (isImageMode) {
+    renderImageComparisonBoard(els.candidateList, currentCase.storySegments || [], anonymousCandidates);
   }
   anonymousCandidates.forEach((candidate) => {
     const fragment = els.candidateTemplate.content.cloneNode(true);
@@ -316,7 +320,7 @@ function renderCandidates(currentCase) {
     if (copy) {
       copy.textContent = isTextMode ? "请根据上方 A/B 文本对照进行评分。" : "请仅基于该方案图片内容评分。";
     }
-    if (isTextMode) {
+    if (isTextMode || isImageMode) {
       strip.innerHTML = "";
       strip.hidden = true;
     } else {
@@ -335,6 +339,66 @@ function renderCandidates(currentCase) {
     });
     els.candidateList.appendChild(fragment);
   });
+}
+
+function renderImageComparisonBoard(container, sharedSegments, anonymousCandidates) {
+  const board = document.createElement("section");
+  board.className = "image-compare-board";
+  const head = document.createElement("div");
+  head.className = "text-compare-head";
+  head.innerHTML = `<strong>图片对照（按段）</strong><span>每段展示所有方案图片</span>`;
+  board.appendChild(head);
+
+  let segmentCount = sharedSegments.length;
+  anonymousCandidates.forEach((candidate) => {
+    const images = Array.isArray(candidate.images) ? candidate.images : [];
+    segmentCount = Math.max(segmentCount, images.length);
+  });
+
+  for (let i = 0; i < segmentCount; i += 1) {
+    const row = document.createElement("article");
+    row.className = "image-compare-row";
+
+    const label = document.createElement("div");
+    label.className = "text-compare-label";
+    label.textContent = `段落 ${i + 1}`;
+    row.appendChild(label);
+
+    const segmentText = document.createElement("p");
+    segmentText.className = "rich-copy image-compare-text";
+    segmentText.textContent = sharedSegments[i] || "";
+    row.appendChild(segmentText);
+
+    const gallery = document.createElement("div");
+    gallery.className = "image-compare-gallery";
+    anonymousCandidates.forEach((candidate) => {
+      const cell = document.createElement("figure");
+      cell.className = "image-compare-cell";
+      const title = document.createElement("figcaption");
+      title.className = "image-caption";
+      title.textContent = `方案 ${candidate.label}`;
+      cell.appendChild(title);
+
+      const src = Array.isArray(candidate.images) ? candidate.images[i] : "";
+      if (src) {
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = `段落 ${i + 1} 方案 ${candidate.label}`;
+        img.loading = "lazy";
+        cell.appendChild(img);
+      } else {
+        const empty = document.createElement("div");
+        empty.className = "image-compare-empty";
+        empty.textContent = "无图片";
+        cell.appendChild(empty);
+      }
+      gallery.appendChild(cell);
+    });
+    row.appendChild(gallery);
+    board.appendChild(row);
+  }
+
+  container.appendChild(board);
 }
 
 function renderTextComparisonBoard(container, anonymousCandidates) {
