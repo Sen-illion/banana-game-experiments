@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DN Human Evaluation</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div>
+        <p class="eyebrow">Human Evaluation</p>
+        <h1 id="study-title">DN 人类评测</h1>
+        <p class="lede">按主题进行匿名对比评测。请仅根据内容质量打分。</p>
+      </div>
+      <div class="header-panel" aria-label="评测进度">
+        <span id="progress-label">0 / 0 已完成</span>
+        <div class="progress-track">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-shell">
+      <section class="setup-panel" aria-labelledby="setup-title">
+        <div>
+          <p class="section-kicker">开始前</p>
+          <h2 id="setup-title">评测者信息与说明</h2>
+        </div>
+        <label class="field">
+          <span>评测者 ID</span>
+          <input id="evaluator-id" type="text" autocomplete="off" placeholder="例如 evaluator_01" />
+        </label>
+        <div id="instruction-list" class="instruction-list"></div>
+        <div class="info-grid">
+          <article class="info-card">
+            <h3>当前访问地址</h3>
+            <p id="share-link" class="mono-text"></p>
+            <p id="dataset-source" class="helper-text"></p>
+          </article>
+          <article class="info-card">
+            <h3>结果保存</h3>
+            <p class="helper-text">结果会保存在浏览器本地；带 token 的链接会自动回传到服务器。</p>
+          </article>
+        </div>
+        <div class="toolbar">
+          <button id="copy-link" class="secondary-button" type="button">复制当前链接</button>
+          <label class="secondary-button file-button">
+            导入 dataset.json
+            <input id="dataset-file" type="file" accept="application/json,.json" />
+          </label>
+          <button id="reset-progress" class="secondary-button" type="button">清空本地进度</button>
+        </div>
+      </section>
+
+      <section class="sample-panel" aria-live="polite">
+        <div class="sample-topline">
+          <button id="prev-case" class="secondary-button" type="button">上一个主题</button>
+          <div>
+            <p id="sample-index" class="section-kicker">主题 0 / 0</p>
+            <h2 id="case-title">正在加载数据...</h2>
+          </div>
+          <button id="next-case" class="secondary-button" type="button">下一个主题</button>
+        </div>
+
+        <div class="context-grid">
+          <article>
+            <h3>主题说明</h3>
+            <p id="case-prompt" class="rich-copy"></p>
+          </article>
+          <article>
+            <h3>上下文</h3>
+            <p id="case-context" class="rich-copy"></p>
+          </article>
+        </div>
+
+        <section class="story-panel" aria-labelledby="story-title">
+          <div class="story-head">
+            <div>
+              <p class="section-kicker">参考文本</p>
+              <h3 id="story-title">段落列表</h3>
+            </div>
+            <p class="helper-text">下方候选方案按段展示。每段包含对应文本和图片（若有）。</p>
+          </div>
+          <div id="story-segments" class="story-segments"></div>
+        </section>
+
+        <div id="completion-warning" class="warning" hidden></div>
+        <div id="candidate-list" class="candidate-grid"></div>
+
+        <div class="submission-bar">
+          <div>
+            <strong id="case-status">当前主题未完成</strong>
+            <p>所有必填分数完成后才可提交当前主题。</p>
+            <p id="sync-status" class="helper-text"></p>
+          </div>
+          <div class="toolbar">
+            <button id="submit-case" class="primary-button" type="button">提交当前主题</button>
+            <button id="sync-results" class="secondary-button" type="button">重新同步到服务器</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="export-panel" aria-labelledby="export-title">
+        <div>
+          <p class="section-kicker">结果导出</p>
+          <h2 id="export-title">下载评测结果</h2>
+          <p>支持 JSON 与 CSV 导出。</p>
+        </div>
+        <div class="toolbar">
+          <button id="export-json" class="primary-button" type="button">导出 JSON</button>
+          <button id="export-csv" class="secondary-button" type="button">导出 CSV</button>
+        </div>
+      </section>
+    </main>
+
+    <template id="candidate-template">
+      <article class="candidate-card">
+        <div class="candidate-head">
+          <div>
+            <p class="section-kicker candidate-label"></p>
+            <h3>匿名方案</h3>
+          </div>
+          <span class="candidate-completion">待评分</span>
+        </div>
+        <div class="candidate-copy">请基于该方案的逐段内容进行评分。</div>
+        <div class="image-strip"></div>
+        <div class="rating-list"></div>
+        <label class="field note-field">
+          <span>可选备注</span>
+          <textarea rows="3" placeholder="记录明显优缺点或问题位置"></textarea>
+        </label>
+      </article>
+    </template>
+
+    <script src="app.js" defer></script>
+  </body>
+  </html>
+
