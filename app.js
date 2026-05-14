@@ -267,10 +267,11 @@ function renderCase() {
   }
 
   const isTextMode = state.dataset.mode === "text";
+  const isImageMode = state.dataset.mode === "image";
   if (els.storyPanel) {
-    els.storyPanel.hidden = isTextMode;
+    els.storyPanel.hidden = isTextMode || isImageMode;
   }
-  if (!isTextMode) {
+  if (!isTextMode && !isImageMode) {
     renderStorySegments(currentCase.storySegments || []);
   } else {
     els.storySegments.innerHTML = "";
