@@ -60,6 +60,7 @@ function bindElements() {
     casePrompt: document.querySelector("#case-prompt"),
     caseContext: document.querySelector("#case-context"),
     storySegments: document.querySelector("#story-segments"),
+    storyPanel: document.querySelector(".story-panel"),
     warning: document.querySelector("#completion-warning"),
     candidateList: document.querySelector("#candidate-list"),
     candidateTemplate: document.querySelector("#candidate-template"),
@@ -265,7 +266,15 @@ function renderCase() {
     els.warning.textContent = "";
   }
 
-  renderStorySegments(currentCase.storySegments || []);
+  const isTextMode = state.dataset.mode === "text";
+  if (els.storyPanel) {
+    els.storyPanel.hidden = isTextMode;
+  }
+  if (!isTextMode) {
+    renderStorySegments(currentCase.storySegments || []);
+  } else {
+    els.storySegments.innerHTML = "";
+  }
   renderCandidates(currentCase);
 }
 
@@ -282,7 +291,13 @@ function renderStorySegments(segments) {
 function renderCandidates(currentCase) {
   els.candidateList.innerHTML = "";
   const isTextMode = state.dataset.mode === "text";
-  getAnonymousCandidates(currentCase).forEach((candidate) => {
+  els.candidateList.classList.toggle("text-mode", isTextMode);
+  const anonymousCandidates = getAnonymousCandidates(currentCase);
+
+  if (isTextMode) {
+    renderTextComparisonBoard(els.candidateList, anonymousCandidates);
+  }
+  anonymousCandidates.forEach((candidate) => {
     const fragment = els.candidateTemplate.content.cloneNode(true);
     const card = fragment.querySelector(".candidate-card");
     const label = fragment.querySelector(".candidate-label");
@@ -299,9 +314,15 @@ function renderCandidates(currentCase) {
     completion.textContent = complete ? "已完成" : "待评分";
 
     if (copy) {
-      copy.textContent = isTextMode ? "请仅基于该方案文本内容评分。" : "请仅基于该方案图片内容评分。";
+      copy.textContent = isTextMode ? "请根据上方 A/B 文本对照进行评分。" : "请仅基于该方案图片内容评分。";
     }
-    renderSegmentPairs(strip, currentCase.storySegments || [], candidate, state.dataset.mode);
+    if (isTextMode) {
+      strip.innerHTML = "";
+      strip.hidden = true;
+    } else {
+      strip.hidden = false;
+      renderSegmentPairs(strip, currentCase.storySegments || [], candidate, state.dataset.mode);
+    }
     renderRatings(ratingList, currentCase.id, candidate.label);
 
     note.value = getCandidateState(currentCase.id, candidate.label).note || "";
@@ -314,6 +335,39 @@ function renderCandidates(currentCase) {
     });
     els.candidateList.appendChild(fragment);
   });
+}
+
+function renderTextComparisonBoard(container, anonymousCandidates) {
+  const board = document.createElement("section");
+  board.className = "text-compare-board";
+  const candidateA = anonymousCandidates[0];
+  const candidateB = anonymousCandidates[1];
+  const textsA = normalizeParagraphs(candidateA?.textSegments || []);
+  const textsB = normalizeParagraphs(candidateB?.textSegments || []);
+  const segmentCount = Math.max(textsA.length, textsB.length);
+
+  const head = document.createElement("div");
+  head.className = "text-compare-head";
+  head.innerHTML = `<strong>文本对照（A/B）</strong><span>仅展示候选文本</span>`;
+  board.appendChild(head);
+
+  for (let i = 0; i < segmentCount; i += 1) {
+    const row = document.createElement("article");
+    row.className = "text-compare-row";
+    row.innerHTML = `
+      <div class="text-compare-label">段落 ${i + 1}</div>
+      <div class="text-compare-cell">
+        <p class="section-kicker">方案 A</p>
+        <p class="rich-copy">${escapeHtml(textsA[i] || "")}</p>
+      </div>
+      <div class="text-compare-cell">
+        <p class="section-kicker">方案 B</p>
+        <p class="rich-copy">${escapeHtml(textsB[i] || "")}</p>
+      </div>
+    `;
+    board.appendChild(row);
+  }
+  container.appendChild(board);
 }
 
 function renderSegmentPairs(container, sharedSegments, candidate, mode) {

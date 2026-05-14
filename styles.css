@@ -373,6 +373,47 @@ h3 {
   gap: 18px;
 }
 
+.candidate-grid.text-mode {
+  grid-template-columns: 1fr 1fr;
+}
+
+.text-compare-board {
+  grid-column: 1 / -1;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  background: #fbfaf7;
+  display: grid;
+  gap: 10px;
+}
+
+.text-compare-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  color: var(--muted);
+}
+
+.text-compare-row {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  border-top: 1px solid #eee7dc;
+  padding-top: 10px;
+}
+
+.text-compare-label {
+  font-weight: 800;
+  color: var(--accent-dark);
+}
+
+.text-compare-cell {
+  border: 1px solid #eee7dc;
+  border-radius: 10px;
+  padding: 10px;
+  background: #fff;
+}
+
 .candidate-card {
   display: grid;
   gap: 18px;
@@ -564,6 +605,10 @@ h3 {
   .export-panel {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .text-compare-row {
+    grid-template-columns: 1fr;
   }
 }
 
